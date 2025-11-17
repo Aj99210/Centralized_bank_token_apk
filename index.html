@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Token System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: var(--bg-primary);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .top-bar h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            color: var(--primary);
+        }
+
+        /* Page Content */
+        .page {
+            display: none;
+            flex: 1;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Balance Card */
+        .balance-card {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            border: none;
+            padding: 24px;
+        }
+
+        .balance-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .balance-amount {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .balance-currency {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .bank-name {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.2s;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:active {
+            background: var(--primary-dark);
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        /* Action Grid */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .action-btn {
+            padding: 20px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .action-btn:active {
+            transform: scale(0.96);
+            background: var(--bg-secondary);
+        }
+
+        .action-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .action-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Stats */
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Transactions */
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-item:active {
+            background: var(--bg-secondary);
+        }
+
+        .transaction-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 12px;
+        }
+
+        .transaction-icon.sent {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .transaction-icon.received {
+            background: #dcfce7;
+            color: var(--success);
+        }
+
+        .transaction-icon.mint {
+            background: #dbeafe;
+            color: var(--primary);
+        }
+
+        .transaction-details {
+            flex: 1;
+        }
+
+        .transaction-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .transaction-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .transaction-amount {
+            font-size: 16px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .transaction-amount.sent {
+            color: var(--danger);
+        }
+
+        .transaction-amount.received {
+            color: var(--success);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding: 8px 0;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+            background: none;
+            border: none;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .modal-message {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            font-size: 15px;
+        }
+
+        /* Bank Badges */
+        .bank-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.success {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Login Page -->
+        <div id="loginPage" class="page active">
+            <div class="top-bar">
+                <h1>Welcome</h1>
+            </div>
+            <div style="padding: 20px;">
+                <div style="text-align: center; padding: 40px 20px 60px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🏦</div>
+                    <h2 style="font-size: 24px; margin-bottom: 8px;">Bank Token System</h2>
+                    <p style="color: var(--text-secondary); font-size: 15px;">Secure digital banking platform</p>
+                </div>
+
+                <div class="card">
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" id="loginUsername" placeholder="Enter your username">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Select Your Bank</label>
+                        <select id="loginBank">
+                            <option value="">Choose a bank...</option>
+                            <option value="State Bank">State Bank</option>
+                            <option value="National Bank">National Bank</option>
+                            <option value="Central Bank">Central Bank</option>
+                            <option value="Royal Bank">Royal Bank</option>
+                            <option value="Trust Bank">Trust Bank</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-primary" onclick="handleLogin()">
+                        Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Home Page -->
+        <div id="homePage" class="page">
+            <div class="top-bar">
+                <h1>Dashboard</h1>
+                <button class="back-btn" onclick="handleLogout()">👤</button>
+            </div>
+
+            <div style="padding: 20px;">
+                <div class="card balance-card">
+                    <div class="balance-label">Total Balance</div>
+                    <div class="balance-amount" id="homeBalance">0</div>
+                    <div class="balance-currency">Tokens</div>
+                    <div class="bank-name" id="homeBankName">Not Set</div>
+                </div>
+
+                <div class="action-grid">
+                    <div class="action-btn" onclick="showPage('mintPage')">
+                        <div class="action-icon">💰</div>
+                        <div class="action-label">Mint Tokens</div>
+                    </div>
+                    <div class="action-btn" onclick="showPage('transferPage')">
+                        <div class="action-icon">💸</div>
+                        <div class="action-label">Transfer</div>
+                    </div>
+                    <div class="action-btn" onclick="showPage('statsPage')">
+                        <div class="action-icon">📊</div>
+                        <div class="action-label">Statistics</div>
+                    </div>
+                    <div class="action-btn" onclick="showPage('historyPage')">
+                        <div class="action-icon">📜</div>
+                        <div class="action-label">History</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Activity</h3>
+                    </div>
+                    <div id="recentTransactions"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mint Page -->
+        <div id="mintPage" class="page">
+            <div class="top-bar">
+                <button class="back-btn" onclick="showPage('homePage')">←</button>
+                <h1>Mint Tokens</h1>
+                <div style="width: 32px;"></div>
+            </div>
+
+            <div style="padding: 20px;">
+                <div class="card">
+                    <div style="text-align: center; padding: 20px 0; margin-bottom: 20px;">
+                        <div style="font-size: 64px; margin-bottom: 12px;">💰</div>
+                        <p style="color: var(--text-secondary); font-size: 15px;">Create new tokens for your account</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Amount</label>
+                        <input type="number" id="mintAmount" placeholder="Enter amount to mint" min="1">
+                    </div>
+
+                    <button class="btn-primary" onclick="handleMint()">
+                        Mint Tokens
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transfer Page -->
+        <div id="transferPage" class="page">
+            <div class="top-bar">
+                <button class="back-btn" onclick="showPage('homePage')">←</button>
+                <h1>Transfer Tokens</h1>
+                <div style="width: 32px;"></div>
+            </div>
+
+            <div style="padding: 20px;">
+                <div class="card">
+                    <div style="text-align: center; padding: 20px 0; margin-bottom: 20px;">
+                        <div style="font-size: 64px; margin-bottom: 12px;">💸</div>
+                        <p style="color: var(--text-secondary); font-size: 15px;">Send tokens to another user</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Recipient Username</label>
+                        <input type="text" id="transferRecipient" placeholder="Enter recipient username">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Amount</label>
+                        <input type="number" id="transferAmount" placeholder="Enter amount to transfer" min="1">
+                    </div>
+
+                    <button class="btn-primary" onclick="handleTransfer()">
+                        Send Tokens
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Page -->
+        <div id="statsPage" class="page">
+            <div class="top-bar">
+                <button class="back-btn" onclick="showPage('homePage')">←</button>
+                <h1>Statistics</h1>
+                <div style="width: 32px;"></div>
+            </div>
+
+            <div style="padding: 20px;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Platform Overview</h3>
+                    </div>
+                    <div id="platformStats"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Bank Distribution</h3>
+                    </div>
+                    <div id="bankStats"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Page -->
+        <div id="historyPage" class="page">
+            <div class="top-bar">
+                <button class="back-btn" onclick="showPage('homePage')">←</button>
+                <h1>Transaction History</h1>
+                <div style="width: 32px;"></div>
+            </div>
+
+            <div style="padding: 20px;">
+                <div class="card">
+                    <div id="fullTransactionList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <button class="nav-item active" onclick="showPage('homePage')" id="navHome">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Home</div>
+            </button>
+            <button class="nav-item" onclick="showPage('statsPage')" id="navStats">
+                <div class="nav-icon">📊</div>
+                <div class="nav-label">Stats</div>
+            </button>
+            <button class="nav-item" onclick="showPage('historyPage')" id="navHistory">
+                <div class="nav-icon">📜</div>
+                <div class="nav-label">History</div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">Message</div>
+            <div class="modal-message" id="modalMessage">Message content</div>
+            <div class="modal-buttons">
+                <button class="btn-primary" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+        let currentUser = null;
+        let currentBank = null;
+        let updateInterval = null;
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if (pageId === 'homePage') document.getElementById('navHome').classList.add('active');
+            if (pageId === 'statsPage') document.getElementById('navStats').classList.add('active');
+            if (pageId === 'historyPage') document.getElementById('navHistory').classList.add('active');
+
+            if (pageId !== 'loginPage') {
+                updateDashboard();
+            }
+        }
+
+        async function handleLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const bank = document.getElementById('loginBank').value;
+
+            if (!username || !bank) {
+                showModal('Error', 'Please enter username and select a bank');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/join_bank`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, bank})
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentUser = username;
+                    currentBank = bank;
+                    document.getElementById('homeBankName').textContent = bank;
+                    showPage('homePage');
+                    startAutoUpdate();
+                } else {
+                    showModal('Error', data.message);
+                }
+            } catch (error) {
+                showModal('Error', 'Connection failed. Make sure the server is running on localhost:5000');
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                currentUser = null;
+                currentBank = null;
+                stopAutoUpdate();
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginBank').value = '';
+                showPage('loginPage');
+            }
+        }
+
+        async function handleMint() {
+            const amount = parseInt(document.getElementById('mintAmount').value);
+            if (!amount || amount <= 0) {
+                showModal('Error', 'Please enter a valid amount');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/mint_tokens`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username: currentUser, amount})
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showModal('Success', `Successfully minted ${amount} tokens!`);
+                    document.getElementById('mintAmount').value = '';
+                    updateDashboard();
+                    setTimeout(() => showPage('homePage'), 1500);
+                } else {
+                    showModal('Error', data.message);
+                }
+            } catch (error) {
+                showModal('Error', 'Connection failed');
+            }
+        }
+
+        async function handleTransfer() {
+            const recipient = document.getElementById('transferRecipient').value.trim();
+            const amount = parseInt(document.getElementById('transferAmount').value);
+
+            if (!recipient || !amount || amount <= 0) {
+                showModal('Error', 'Please enter recipient and valid amount');
+                return;
+            }
+
+            if (recipient === currentUser) {
+                showModal('Error', 'Cannot transfer to yourself');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/transfer_tokens`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({from_user: currentUser, to_user: recipient, amount})
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showModal('Success', `Successfully transferred ${amount} tokens to ${recipient}!`);
+                    document.getElementById('transferRecipient').value = '';
+                    document.getElementById('transferAmount').value = '';
+                    updateDashboard();
+                    setTimeout(() => showPage('homePage'), 1500);
+                } else {
+                    showModal('Error', data.message);
+                }
+            } catch (error) {
+                showModal('Error', 'Connection failed');
+            }
+        }
+
+        async function updateDashboard() {
+            if (!currentUser) return;
+
+            try {
+                const balanceRes = await fetch(`${API_URL}/get_balance/${currentUser}`);
+                const balanceData = await balanceRes.json();
+                const balance = balanceData.balance || 0;
+                document.getElementById('homeBalance').textContent = balance.toLocaleString();
+
+                const statsRes = await fetch(`${API_URL}/get_bank_stats`);
+                const statsData = await statsRes.json();
+                
+                let platformHTML = `
+                    <div class="stat-row">
+                        <span class="stat-label">Total Users</span>
+                        <span class="stat-value">${statsData.total_users}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Total Tokens</span>
+                        <span class="stat-value">${statsData.total_tokens.toLocaleString()}</span>
+                    </div>
+                `;
+                document.getElementById('platformStats').innerHTML = platformHTML;
+
+                let bankHTML = '';
+                for (const [bank, count] of Object.entries(statsData.bank_stats)) {
+                    bankHTML += `
+                        <div class="stat-row">
+                            <span class="stat-label">${bank}</span>
+                            <span class="stat-value">${count} users</span>
+                        </div>
+                    `;
+                }
+                document.getElementById('bankStats').innerHTML = bankHTML;
+
+                const txRes = await fetch(`${API_URL}/get_transactions/${currentUser}`);
+                const txData = await txRes.json();
+                
+                if (txData.transactions && txData.transactions.length > 0) {
+                    let recentHTML = renderTransactions(txData.transactions.slice(0, 3));
+                    let fullHTML = renderTransactions(txData.transactions);
+                    document.getElementById('recentTransactions').innerHTML = recentHTML;
+                    document.getElementById('fullTransactionList').innerHTML = fullHTML;
+                } else {
+                    const emptyState = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <div class="empty-text">No transactions yet</div>
+                        </div>
+                    `;
+                    document.getElementById('recentTransactions').innerHTML = emptyState;
+                    document.getElementById('fullTransactionList').innerHTML = emptyState;
+                }
+            } catch (error) {
+                console.error('Update failed:', error);
+            }
+        }
+
+        function renderTransactions(transactions) {
+            return transactions.map(tx => {
+                const isSent = tx.from === currentUser;
+                const isMint = tx.type === 'mint';
+                let icon, iconClass, title, subtitle, amountClass, amountSign;
+
+                if (isMint) {
+                    icon = '💎';
+                    iconClass = 'mint';
+                    title = 'Token Minted';
+                    subtitle = 'System generated';
+                    amountClass = 'received';
+                    amountSign = '+';
+                } else if (isSent) {
+                    icon = '↑';
+                    iconClass = 'sent';
+                    title = `Sent to ${tx.to}`;
+                    subtitle = tx.to;
+                    amountClass = 'sent';
+                    amountSign = '-';
+                } else {
+                    icon = '↓';
+                    iconClass = 'received';
+                    title = `Received from ${tx.from}`;
+                    subtitle = tx.from;
+                    amountClass = 'received';
+                    amountSign = '+';
+                }
+
+                return `
+                    <div class="transaction-item">
+                        <div class="transaction-icon ${iconClass}">${icon}</div>
+                        <div class="transaction-details">
+                            <div class="transaction-title">${title}</div>
+                            <div class="transaction-subtitle">${tx.timestamp}</div>
+                        </div>
+                        <div class="transaction-amount ${amountClass}">
+                            ${amountSign}${tx.amount}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showModal(title, message) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function startAutoUpdate() {
+            stopAutoUpdate();
+            updateInterval = setInterval(updateDashboard, 5000);
+        }
+
+        function stopAutoUpdate() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+        }
+
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') closeModal();
+        });
+    </script>
+</body>
+</html>
